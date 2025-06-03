@@ -1,0 +1,51 @@
+<div class="well editPanelTag">
+  <h2>Add a Tag</h2>
+  <form
+    action="<%= typeof addTagURL !== 'undefined' ? addTagURL : '/add-tag' %>"
+    method="post"
+    class="tagForm"
+  >
+    <div class="form-group fieldTagName">
+      <label for="tagName">Tag name</label>
+      <input type="text" name="tagName" id="tagName" class="form-control" />
+    </div>
+    <div class="form-group">
+      <button type="submit" class="saveButton btn btn-lg btn-primary">
+        Save
+      </button>
+    </div>
+  </form>
+</div>
+
+<div class="page-header">
+  <h2>
+    <%= typeof tags !== 'undefined' ? tags.length : 0 %> Tag<%= (typeof tags !==
+    'undefined' && tags.length === 1) ? '' : 's' %>
+  </h2>
+</div>
+<br />
+<br />
+
+<table class="table table-bordered">
+  <% if (typeof tags !== 'undefined' && tags.length > 0) { %> <%
+  tags.forEach(function(tag) { %>
+  <tr>
+    <td>
+      <a
+        href="<%= typeof editTagURL !== 'undefined' ? editTagURL : '/edit-tag' %>?tag_id=<%= tag.id %>"
+        class="btn btn-xs btn-primary"
+        ><i class="fa fa-pencil" aria-hidden="true"></i
+      ></a>
+    </td>
+    <td class="tagContent">
+      <h4><%= tag.tagName %></h4>
+    </td>
+  </tr>
+  <% }); %> <% } else { %>
+  <tr>
+    <td>
+      <em>No tags to show.</em>
+    </td>
+  </tr>
+  <% } %>
+</table>

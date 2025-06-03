@@ -1,0 +1,19 @@
+<table class="table table-bordered">
+  <% if (typeof dbs !== 'undefined' && dbs.length > 0) { %> <%
+  dbs.forEach(function(db) { %>
+  <tr>
+    <td>
+      <a href="/load_db/<%= db %>" class="btn btn-lg btn-primary">Load</a>
+    </td>
+    <td class="dbContent">
+      <h4><%= db %></h4>
+    </td>
+  </tr>
+  <% }); %> <% } else { %>
+  <tr>
+    <td>
+      <em>No dbs to show.</em>
+    </td>
+  </tr>
+  <% } %>
+</table>

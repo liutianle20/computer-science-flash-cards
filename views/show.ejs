@@ -1,0 +1,43 @@
+<div class="page-header">
+    <h2><%= cards.length %> Card<%= cards.length === 1 ? '' : 's'%></h2>
+</div>
+<div class="btn-group btn-group-md" role="group" aria-label="filters">
+    <a href="/filter_cards/all" class="btn btn-<%= filter_name === 'all' ? 'primary' : 'default' %>">all</a>
+    <% for (const tag of tags) { %>
+        <a href="/filter_cards/<%= tag.id %>" class="btn btn-<%= filter_name === tag.id ? 'primary' : 'default' %>"><%=tag.tagName%></a>
+    <% } %>
+    <a href="/filter_cards/known" class="btn btn-<%= filter_name === 'known' ? 'primary' : 'default' %>">known</a>
+    <a href="/filter_cards/unknown" class="btn btn-<%= filter_name === 'unknown' ? 'primary' : 'default' %>">unknown</a>
+</div>
+
+<br />
+<br />
+
+<table class="table table-bordered">
+    <% if (cards.length > 0) { %>
+        <% for (const card of cards) { %>
+            <tr>
+                <td>
+                    <a href="/edit/<%= card.id %>" class="btn btn-xs btn-primary"><i class="fa fa-pencil" aria-hidden="true"></i></a>
+                    <a href="/memorize/<%= card.type %>/<%= card.id %>" class="btn btn-xs btn-primary"><i class="fa fa-book" aria-hidden="true"></i></a>
+                </td>
+                <td class="cardContent">
+                    <h4>
+                        <%= card.front %>
+                    </h4>
+                    <% if (card.type === 1) { %>
+                        <%- card.back.replace(/\n/g, "<br />") %>
+                    <% } else { %>
+                        <pre><code><%= card.back.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') %></code></pre>
+                    <% } %>
+                </td>
+            </tr>
+        <% } %>
+    <% } else { %>
+        <tr>
+            <td>
+                <em>No cards to show.</em>
+            </td>
+        </tr>
+    <% } %>
+</table>

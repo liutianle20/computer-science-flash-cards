@@ -2,6 +2,6 @@
 py3env/
 __pycache__/
 *.pyc
-config-personal.txt
 cards.db
 env
+node_modules/
