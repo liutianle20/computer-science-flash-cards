@@ -1,0 +1,27 @@
+{
+  "name": "computer-science-flash-cards",
+  "version": "1.0.0",
+  "description": "This is a little website I've put together to allow me to easily make flash cards and quiz myself for memorization of:",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/liutianle20/computer-science-flash-cards.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/liutianle20/computer-science-flash-cards/issues"
+  },
+  "homepage": "https://github.com/liutianle20/computer-science-flash-cards#readme",
+  "dependencies": {
+    "connect-flash": "^0.1.1",
+    "ejs": "^3.1.10",
+    "express": "^5.1.0",
+    "express-ejs-layouts": "^2.5.1",
+    "express-session": "^1.18.1",
+    "sqlite3": "^5.1.7"
+  }
+}

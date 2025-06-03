@@ -1,0 +1,80 @@
+
+<div class="row">
+    <div class="col-xs-12 text-center">
+        <div class="btn-group btn-group-lg" role="group" aria-label="card type">
+            <% if (typeof tags !== 'undefined' && tags.length > 0) { %>
+                <% tags.forEach(function(tag) { %>
+                    <a href="<%= typeof memorizeKnownURL !== 'undefined' ? memorizeKnownURL : '/memorize-known' %>?card_type=<%= tag.id %>" class="btn btn-<%= (typeof card_type !== 'undefined' && card_type == tag.id) ? "primary" : "default" %>"><%= tag.tagName %></a>
+                <% }); %>
+            <% } %>
+        </div>
+    </div>
+</div>
+
+<hr/>
+
+<div class="row memorizePanel">
+    <div class="col-xs-8 col-xs-offset-2">
+        <div class="panel panel-default cardFront">
+            <div class="panel-body">
+                <div class="alignContainer">
+                    <div class="alignMiddle frontText">
+                        <h3 class="text-center"><%= typeof card !== 'undefined' ? card.front : '' %></h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="panel panel-primary cardBack">
+            <div class="panel-body">
+                <div class="alignContainer">
+                    <div class="alignMiddle frontText">
+                        <% if (typeof card !== 'undefined' && card.type == 1) { %>
+                            <% if (typeof short_answer !== 'undefined' && short_answer) { %>
+                                <div class="text-center largerText">
+                            <% } %>
+                                <%- typeof card !== 'undefined' && typeof card.back !== 'undefined' ? card.back.replace(/\n/g, "<br />") : '' %>
+                            <% if (typeof short_answer !== 'undefined' && short_answer) { %>
+                                </div>
+                            <% } %>
+                        <% } else if (typeof card !== 'undefined') { %>
+                            <pre><code><%= card.back %></code></pre>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-xs-12 text-center">
+        <a href="javascript:" class="btn btn-primary btn-lg flipCard">
+            <i class="fa fa-exchange"></i>
+            Flip Card
+        </a>
+        &nbsp;
+        &nbsp;
+        <a href="<%= typeof markUnknownURL !== 'undefined' ? markUnknownURL : '/mark-unknown' %>?card_id=<%= typeof card !== 'undefined' ? card.id : '' %>&card_type=<%= typeof card_type !== 'undefined' ? card_type : '' %>" class="btn btn-success btn-lg">
+            <i class="fa fa-check"></i>
+            I Unknow It
+        </a>
+        &nbsp;
+        &nbsp;
+        <a href="<%= typeof memorizeKnownURL !== 'undefined' ? memorizeKnownURL : '/memorize-known' %>?card_type=<%= typeof card_type !== 'undefined' ? card_type : '' %>" class="btn btn-primary btn-lg">
+            Next Card
+            <i class="fa fa-arrow-right"></i>
+        </a>
+    </div>
+</div>
+<div class="row">
+    <div class="col-xs-12 text-center">
+        <br />
+        <br />
+        <br />
+        <a href="<%= typeof bookmarkURL !== 'undefined' ? bookmarkURL : '/bookmark' %>?card_type=3&card_id=<%= typeof card !== 'undefined' ? card.id : '' %>" class="btn btn-default btn-sm">
+            <i class="fa fa-bookmark"></i>
+            bookmark this card (#<%= typeof card !== 'undefined' ? card.id : '' %>)
+        </a>
+
+    </div>
+</div>
