@@ -11,3 +11,9 @@ create table tags (
   id integer primary key autoincrement,
   tagName text not null
 );
+
+CREATE TABLE user (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  username TEXT NOT NULL UNIQUE,
+  password TEXT NOT NULL
+);

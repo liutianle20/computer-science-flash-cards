@@ -1,3 +1,31 @@
+<div class="auth-toggle" style="margin-bottom: 1rem;">
+  <div class="btn-group">
+    <a href="/login" class="btn <%= (typeof signup !== 'undefined' && signup) ? 'btn-default' : 'btn-primary' %>">Log in</a>
+    <a href="/signup" class="btn <%= (typeof signup !== 'undefined' && signup) ? 'btn-primary' : 'btn-default' %>">Sign up</a>
+  </div>
+</div>
+<% if (typeof signup !== 'undefined' && signup) { %>
+  <h2>Sign Up</h2>
+  <% if (typeof error !== 'undefined' && error) { %>
+    <div class="alert alert-danger" role="alert"><%= error %></div>
+  <% } %>
+  <div class="well">
+    <form action="/signup" method="post">
+      <div class="form-group">
+        <label for="username">Username:</label>
+        <input type="text" name="username" class="form-control" />
+      </div>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" name="password" class="form-control" />
+      </div>
+      <div class="form-group">
+        <button type="submit" class="btn btn-lg btn-primary">Sign up</button>
+      </div>
+    </form>
+    
+  </div>
+<% } else { %>
 <h2>Login</h2>
 <% if (typeof error !== 'undefined' && error) { %>
 <div class="alert alert-danger" role="alert"><%= error %></div>
@@ -18,3 +46,5 @@
     </div>
   </form>
 </div>
+
+<% } %>

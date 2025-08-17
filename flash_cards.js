@@ -1,5 +1,7 @@
 // server.js
 
+require("dotenv").config();
+
 const express = require("express");
 const path = require("path");
 const fs = require("fs");
@@ -7,6 +9,22 @@ const sqlite3 = require("sqlite3").verbose();
 const session = require("express-session");
 const flash = require("connect-flash");
 const expressLayouts = require("express-ejs-layouts");
+
+const OpenAI = require("openai");
+
+const apiKey = process.env.DEEPSEEK_API_KEY || process.env.OPENAI_API_KEY;
+if (!apiKey) {
+  throw new Error(
+    "Missing API key: set DEEPSEEK_API_KEY or OPENAI_API_KEY in your .env file"
+  );
+}
+
+const openai = new OpenAI({
+  baseURL: "https://api.deepseek.com",
+  apiKey: apiKey,
+});
+
+const hintTemplate = process.env.DEEPSEEK_HINT_PROMPT;
 
 const app = express();
 
@@ -28,17 +46,26 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(
   session({
-    secret: "development key",
+    secret: process.env.SESSION_SECRET, // used to sign the session ID cookie
     resave: false,
     saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      secure: false, // true when behind HTTPS
+      sameSite: "lax",
+      maxAge: 1000 * 60 * 10,
+    },
   })
 );
 // Make session data available to all templates
+app.use(flash());
+
+// Expose session and user to all EJS views
 app.use((req, res, next) => {
   res.locals.session = req.session;
+  res.locals.user = req.session && req.session.user ? req.session.user : null;
   next();
 });
-app.use(flash());
 
 // Make flash messages available in all templates
 app.use((req, res, next) => {
@@ -94,9 +121,20 @@ function run(sql, params = []) {
   });
 }
 
+async function ensureUsersTable() {
+  await run(`
+    CREATE TABLE IF NOT EXISTS users (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      username TEXT NOT NULL UNIQUE,
+      password TEXT NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+}
+
 // Ensure the user is logged in
 function requireLogin(req, res, next) {
-  if (!req.session.logged_in) {
+  if (!req.session.user) {
     return res.redirect("/login");
   }
   next();
@@ -290,15 +328,17 @@ app.get("/edit/:card_id", requireLogin, async (req, res) => {
 
 // Handle “save” from the edit form
 app.post("/edit-card", requireLogin, async (req, res) => {
-
   try {
-    await run("UPDATE cards SET type = ?, front = ?, back = ?, known = ? WHERE id = ?", [
-      parseInt(req.body.type, 10),
-      req.body.front,
-      req.body.back,
-      parseInt(req.body.known, 10) || 0, // default to 0 if not provided
-      parseInt(req.body.card_id, 10), // or req.body.id if that's what you're using
-    ]);
+    await run(
+      "UPDATE cards SET type = ?, front = ?, back = ?, known = ? WHERE id = ?",
+      [
+        parseInt(req.body.type, 10),
+        req.body.front,
+        req.body.back,
+        parseInt(req.body.known, 10) || 0, // default to 0 if not provided
+        parseInt(req.body.card_id, 10), // or req.body.id if that's what you're using
+      ]
+    );
     req.flash("success", "Card saved.");
     res.redirect("/show");
   } catch (err) {
@@ -342,17 +382,22 @@ app.get(
       }
 
       if (!card) {
-        req.flash("info", card_type
-          ? `You've learned all the cards of this type.`
-          : `You've learned all unknown cards.`);
+        req.flash(
+          "info",
+          card_type
+            ? `You've learned all the cards of this type.`
+            : `You've learned all unknown cards.`
+        );
         return res.redirect("/show");
       }
 
-      card_type = card.type
+      card_type = card.type;
       const short_answer = card.back.length < 75;
       const tags = await getAllTag();
-      console.log(`Memorizing card: ${card.id}, type: ${card_type}, front: ${card.front}`);
-      
+      console.log(
+        `Memorizing card: ${card.id}, type: ${card_type}, front: ${card.front}`
+      );
+
       res.render("memorize", {
         card,
         card_type: card_type ? parseInt(card_type) : null,
@@ -437,31 +482,142 @@ app.get("/mark_unknown/:card_id/:card_type", requireLogin, async (req, res) => {
 });
 
 // ---------------------------------------------------------------------------
+// AI Hint Feature
+// ---------------------------------------------------------------------------
+// Load the template from env
+
+/**
+ * Fill in the template with real values.
+ * @param {string} front - The flashcard front text
+ * @param {string} back - The flashcard back text
+ * @returns {string} - The filled prompt
+ */
+function buildHintPrompt(front, back) {
+  return hintTemplate
+    .replace("{front_message}", front)
+    .replace("{back_message}", back);
+}
+
+async function getAIHintForCard(card) {
+  try {
+    // Verify card existence
+    if (!card) {
+      throw new Error("Card not found");
+    }
+    console.log(card);
+    // Build the prompt using the template
+    const prompt = buildHintPrompt(card.front, card.back);
+    const completion = await openai.chat.completions.create({
+      model: "deepseek-chat",
+      messages: [
+        {
+          role: "system",
+          content:
+            "You are a helpful mentor who gives concise, recall-friendly hints for flashcards.",
+        },
+        { role: "user", content: prompt },
+      ],
+    });
+    console.log(completion.choices[0].message.content);
+    return completion.choices[0].message.content;
+  } catch (error) {
+    console.error("Error verifying card existence:", error);
+    throw error;
+  }
+}
+
+app.get("/hint/:card_id", requireLogin, async (req, res) => {
+  const card_id = req.params.card_id;
+  try {
+    const card = await getCardById(card_id);
+    if (!card) {
+      return res.status(404).json({ error: "Card not found" });
+    }
+    const hint = await getAIHintForCard(card);
+    res.json({ hint });
+  } catch (err) {
+    console.error(err);
+    res.sendStatus(500);
+  }
+});
+
+// ---------------------------------------------------------------------------
 // Authentication routes
 // ---------------------------------------------------------------------------
 
 // Show login form
 app.get("/login", (req, res) => {
-  res.render("login", { error: null });
+  res.render("login", { error: null, signup: false });
+});
+
+// Show signup form
+app.get("/signup", (req, res) => {
+  res.render("login", { error: null, signup: true });
 });
 
 // Handle login POST
 app.post("/login", async (req, res) => {
   const { username, password } = req.body;
-  // Same default credentials as in Flask: admin / default
-  if (username !== "vincent" || password !== "1234") {
-    res.render("login", { error: "Invalid username or password!" });
-  } else {
-    req.session.logged_in = true;
+  // Query from data base by username and password to verify the identity
+  try {
+    const rows = await query(
+      "SELECT * FROM users WHERE username = ? AND password = ?",
+      [username, password]
+    );
+    const user = rows && rows.length > 0 ? rows[0] : null;
+    if (user) {
+      req.session.user = user.username;
+      console.log(`User logged in: ${user.username}`);
+      return res.redirect("/list_db");
+    }
+    return res.render("login", {
+      error: "Invalid username or password!",
+      signup: false,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.render("login", { error: "Login failed!", signup: false });
+  }
+});
+
+// Handle signup POST
+app.post("/signup", async (req, res) => {
+  const { username, password } = req.body;
+  // Create a tuple in data base for the user
+  // Handle the error if SQL query fails
+  try {
+    // Check if username exists
+    const existingUser = await query("SELECT * FROM users WHERE username = ?", [
+      username,
+    ]);
+    if (existingUser.length > 0) {
+      return res.render("login", {
+        error: "Username already exists!",
+        signup: true,
+      });
+    }
+
+    await run("INSERT INTO users (username, password) VALUES (?, ?)", [
+      username,
+      password,
+    ]);
+    console.log(`User created: ${username}`);
+    req.session.user = username;
     res.redirect("/list_db");
+  } catch (err) {
+    console.error(err);
+    return res.render("login", { error: "Signup failed!", signup: true });
   }
 });
 
 // Logout
 app.get("/logout", requireLogin, (req, res) => {
   req.session.destroy((err) => {
-    if (err) console.error(err);
-    res.redirect("/");
+    if (err) {
+      return res.status(500).send("Error logging out");
+    }
+    res.clearCookie("connect.sid"); // clear the session ID cookie
+    return res.redirect("/login");
   });
 });
 
@@ -569,6 +725,8 @@ app.get("/load_db/:name", requireLogin, async (req, res) => {
     // Close current DB and reconnect to the new one
     db.close();
     await connectDB();
+    // Ensure users table exists for the newly loaded DB
+    await ensureUsersTable();
 
     // If tags table doesn’t exist, create it and initialize default tags
     // Inside /load_db/:name or /init or server start
@@ -598,6 +756,8 @@ app.post("/init", requireLogin, async (req, res) => {
     // Reconnect to this new file
     db.close();
     await connectDB();
+    // Ensure users table exists for the newly created DB
+    await ensureUsersTable();
 
     // Initialize schema (data/schema.sql) and default tags
     await initDB();
@@ -618,6 +778,9 @@ const PORT = process.env.PORT || 3000;
 async function startServer() {
   // Connect to DB
   await connectDB();
+
+  // Ensure users table exists (for auth)
+  await ensureUsersTable();
 
   // Ensure tags table exists and is initialized
   try {
