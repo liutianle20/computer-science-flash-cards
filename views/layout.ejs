@@ -10,11 +10,7 @@
       crossorigin="anonymous"
     />
     <link rel="stylesheet" type="text/css" href="/style.css" />
-    <link
-      rel="stylesheet"
-      type="text/css"
-      href="/highlight-theme-github.css"
-    />
+    <link rel="stylesheet" type="text/css" href="/highlight-theme-github.css" />
     <script src="/highlight.pack.js"></script>
   </head>
   <body>
@@ -27,7 +23,7 @@
               <a class="navbar-brand" href="/">CS Flash Cards</a>
 
               <ul class="nav navbar-nav navbar-right">
-                <% if (!session.logged_in) { %>
+                <% if (!user) { %>
                 <li><a href="/login">log in</a></li>
                 <% } else { %>
                 <li><a href="/cards">cards</a></li>
@@ -40,6 +36,12 @@
                   <a href="/memorize_known">memorize known items</a>
                 </li>
                 <li>&nbsp;&nbsp;&nbsp;&nbsp;</li>
+                <!-- Welcome message center vertically -->
+                <li>
+                  <a style="display: flex; align-items: center; height: 100%;">
+                    Welcome, <%= user %>
+                  </a>
+                </li>
                 <li><a href="/logout">log out</a></li>
                 <% } %>
               </ul>
