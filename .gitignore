@@ -3,5 +3,6 @@ py3env/
 __pycache__/
 *.pyc
 cards.db
-env
-node_modules/
+.env
+node_modules
+csfc-*

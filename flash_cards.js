@@ -228,6 +228,31 @@ async function getCardAlreadyKnown(type) {
   );
 }
 
+async function getAnyKnownCard() {
+  return await get(
+    `
+    SELECT id, type, front, back, known
+    FROM cards
+    WHERE known = 1
+    ORDER BY RANDOM()
+    LIMIT 1
+  `
+  );
+}
+
+async function getKnownCardById(card_id) {
+  return await get(
+    `
+    SELECT id, type, front, back, known
+    FROM cards
+    WHERE id = ?
+      AND known = 1
+    LIMIT 1
+  `,
+    [card_id]
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Initialize database schema
 // ---------------------------------------------------------------------------
@@ -420,23 +445,29 @@ app.get(
   ],
   requireLogin,
   async (req, res) => {
-    const card_type = req.params.card_type || 1;
+    const card_type = req.params.card_type;
     const card_id = req.params.card_id;
     try {
       let card;
       if (card_id) {
-        card = await getCardAlreadyKnown(card_id);
-      } else {
+        card = await getKnownCardById(card_id);
+      } else if (card_type) {
         card = await getCardAlreadyKnown(card_type);
+      } else {
+        card = await getAnyKnownCard();
       }
 
       if (!card) {
         // No more known cards to review
-        const tag = await getTagById(card_type);
-        req.flash(
-          "info",
-          `You've no more known '${tag.tagName}' cards to review.`
-        );
+        if (card_type) {
+          const tag = await getTagById(card_type);
+          req.flash(
+            "info",
+            `You've no more known '${tag.tagName}' cards to review.`
+          );
+        } else {
+          req.flash("info", "You've no more known cards to review.");
+        }
         return res.redirect("/show");
       }
 
@@ -444,7 +475,7 @@ app.get(
       const tags = await getAllTag();
       res.render("memorize_known", {
         card,
-        card_type: parseInt(card_type),
+        card_type: card.type,
         short_answer,
         tags,
       });

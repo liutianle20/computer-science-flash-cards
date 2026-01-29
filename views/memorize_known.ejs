@@ -4,7 +4,7 @@
         <div class="btn-group btn-group-lg" role="group" aria-label="card type">
             <% if (typeof tags !== 'undefined' && tags.length > 0) { %>
                 <% tags.forEach(function(tag) { %>
-                    <a href="<%= typeof memorizeKnownURL !== 'undefined' ? memorizeKnownURL : '/memorize-known' %>?card_type=<%= tag.id %>" class="btn btn-<%= (typeof card_type !== 'undefined' && card_type == tag.id) ? "primary" : "default" %>"><%= tag.tagName %></a>
+                    <a href="<%= typeof memorizeKnownURL !== 'undefined' ? memorizeKnownURL : '/memorize_known' %>/<%= tag.id %>" class="btn btn-<%= (typeof card_type !== 'undefined' && card_type == tag.id) ? "primary" : "default" %>"><%= tag.tagName %></a>
                 <% }); %>
             <% } %>
         </div>
@@ -54,13 +54,13 @@
         </a>
         &nbsp;
         &nbsp;
-        <a href="<%= typeof markUnknownURL !== 'undefined' ? markUnknownURL : '/mark-unknown' %>?card_id=<%= typeof card !== 'undefined' ? card.id : '' %>&card_type=<%= typeof card_type !== 'undefined' ? card_type : '' %>" class="btn btn-success btn-lg">
+        <a href="<%= typeof markUnknownURL !== 'undefined' ? markUnknownURL : '/mark_unknown' %>/<%= typeof card !== 'undefined' ? card.id : '' %>/<%= typeof card_type !== 'undefined' ? card_type : '' %>" class="btn btn-success btn-lg">
             <i class="fa fa-check"></i>
             I Unknow It
         </a>
         &nbsp;
         &nbsp;
-        <a href="<%= typeof memorizeKnownURL !== 'undefined' ? memorizeKnownURL : '/memorize-known' %>?card_type=<%= typeof card_type !== 'undefined' ? card_type : '' %>" class="btn btn-primary btn-lg">
+        <a href="<%= typeof memorizeKnownURL !== 'undefined' ? memorizeKnownURL : '/memorize_known' %><%= typeof card_type !== 'undefined' && card_type !== '' ? '/' + card_type : '' %>" class="btn btn-primary btn-lg">
             Next Card
             <i class="fa fa-arrow-right"></i>
         </a>
