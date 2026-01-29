@@ -4,7 +4,11 @@
         <div class="btn-group btn-group-lg" role="group" aria-label="card type">
             <% if (typeof tags !== 'undefined' && tags.length > 0) { %>
                 <% tags.forEach(function(tag) { %>
+<<<<<<< HEAD
                     <a href="<%= typeof memorizeKnownURL !== 'undefined' ? memorizeKnownURL : '/memorize_known' %>/<%= tag.id %>" class="btn btn-<%= (typeof card_type !== 'undefined' && card_type == tag.id) ? "primary" : "default" %>"><%= tag.tagName %></a>
+=======
+                    <a href="<%= typeof memorizeKnownURL !== 'undefined' ? memorizeKnownURL : '/memorize-known' %>?card_type=<%= tag.id %>" class="btn btn-<%= (typeof card_type !== 'undefined' && card_type == tag.id) ? "primary" : "default" %>"><%= tag.tagName %></a>
+>>>>>>> f684d7f2f94cde515f897c6dd17e6285478dc288
                 <% }); %>
             <% } %>
         </div>
@@ -54,13 +58,21 @@
         </a>
         &nbsp;
         &nbsp;
+<<<<<<< HEAD
         <a href="<%= typeof markUnknownURL !== 'undefined' ? markUnknownURL : '/mark_unknown' %>/<%= typeof card !== 'undefined' ? card.id : '' %>/<%= typeof card_type !== 'undefined' ? card_type : '' %>" class="btn btn-success btn-lg">
+=======
+        <a href="<%= typeof markUnknownURL !== 'undefined' ? markUnknownURL : '/mark-unknown' %>?card_id=<%= typeof card !== 'undefined' ? card.id : '' %>&card_type=<%= typeof card_type !== 'undefined' ? card_type : '' %>" class="btn btn-success btn-lg">
+>>>>>>> f684d7f2f94cde515f897c6dd17e6285478dc288
             <i class="fa fa-check"></i>
             I Unknow It
         </a>
         &nbsp;
         &nbsp;
+<<<<<<< HEAD
         <a href="<%= typeof memorizeKnownURL !== 'undefined' ? memorizeKnownURL : '/memorize_known' %><%= typeof card_type !== 'undefined' && card_type !== '' ? '/' + card_type : '' %>" class="btn btn-primary btn-lg">
+=======
+        <a href="<%= typeof memorizeKnownURL !== 'undefined' ? memorizeKnownURL : '/memorize-known' %>?card_type=<%= typeof card_type !== 'undefined' ? card_type : '' %>" class="btn btn-primary btn-lg">
+>>>>>>> f684d7f2f94cde515f897c6dd17e6285478dc288
             Next Card
             <i class="fa fa-arrow-right"></i>
         </a>

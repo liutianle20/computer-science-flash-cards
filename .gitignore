@@ -2,7 +2,8 @@
 py3env/
 __pycache__/
 *.pyc
+config-personal.txt
 cards.db
-.env
+env
 node_modules
-csfc-*
+.DS_Store
